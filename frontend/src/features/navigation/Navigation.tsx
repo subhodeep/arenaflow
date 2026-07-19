@@ -1,7 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { ResultCard } from '../../components/ResultCard';
-import { postJson } from '../../services/apiClient';
+import { useApiMutation } from '../../hooks/useApiMutation';
 import { baseRequest } from '../../services/requestDefaults';
+import { NavigationRouteResponse } from '../../types/api';
 import { StadiumMap } from './StadiumMap';
 
 type Props = { language: string; venueId: string };
@@ -9,25 +10,17 @@ type Props = { language: string; venueId: string };
 export function Navigation({ language, venueId }: Props) {
   const [origin, setOrigin] = useState('Gate A');
   const [destination, setDestination] = useState('Section 120');
-  const [result, setResult] = useState<unknown>();
-  const [error, setError] = useState<string | null>(null);
+  const navigation = useApiMutation<NavigationRouteResponse>();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    try {
-      setResult(
-        await postJson('/api/v1/navigation/route', {
-          ...baseRequest(language, venueId),
-          origin,
-          destination,
-          mobility_needs: ['step-free'],
-          avoid_crowds: true
-        })
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
-    }
+    await navigation.run('/api/v1/navigation/route', {
+      ...baseRequest(language, venueId),
+      origin,
+      destination,
+      mobility_needs: ['step-free'],
+      avoid_crowds: true
+    });
   }
 
   return (
@@ -51,9 +44,18 @@ export function Navigation({ language, venueId }: Props) {
             <button type="submit">Plan route</button>
           </form>
         </div>
-        <StadiumMap origin={origin} destination={destination} hasResult={Boolean(result)} />
+        <StadiumMap
+          origin={origin}
+          destination={destination}
+          hasResult={Boolean(navigation.result)}
+        />
       </div>
-      <ResultCard title="Route recommendation" result={result} error={error} tone="fan" />
+      <ResultCard
+        title="Route recommendation"
+        result={navigation.result}
+        error={navigation.error}
+        tone="fan"
+      />
     </section>
   );
 }

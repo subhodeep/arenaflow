@@ -1,30 +1,23 @@
 import { FormEvent, useState } from 'react';
 import { ResultCard } from '../../components/ResultCard';
-import { postJson } from '../../services/apiClient';
+import { useApiMutation } from '../../hooks/useApiMutation';
 import { baseRequest } from '../../services/requestDefaults';
+import { SustainabilityAdviceResponse } from '../../types/api';
 
 type Props = { language: string; venueId: string };
 
 export function Sustainability({ language, venueId }: Props) {
   const [intent, setIntent] = useState('water');
-  const [result, setResult] = useState<unknown>();
-  const [error, setError] = useState<string | null>(null);
+  const sustainability = useApiMutation<SustainabilityAdviceResponse>();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    try {
-      setResult(
-        await postJson('/api/v1/sustainability/advice', {
-          ...baseRequest(language, venueId),
-          intent,
-          location: 'main concourse',
-          preferences: ['low-carbon', 'refill']
-        })
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
-    }
+    await sustainability.run('/api/v1/sustainability/advice', {
+      ...baseRequest(language, venueId),
+      intent,
+      location: 'main concourse',
+      preferences: ['low-carbon', 'refill']
+    });
   }
 
   return (
@@ -40,7 +33,12 @@ export function Sustainability({ language, venueId }: Props) {
         </select>
         <button type="submit">Get sustainability advice</button>
       </form>
-      <ResultCard title="Sustainability advice" result={result} error={error} tone="green" />
+      <ResultCard
+        title="Sustainability advice"
+        result={sustainability.result}
+        error={sustainability.error}
+        tone="green"
+      />
     </section>
   );
 }

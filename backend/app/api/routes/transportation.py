@@ -1,17 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import Depends
 
 from app.api.deps import get_gemini_service, get_grounding_service
-from app.core.security import enforce_request_size, rate_limit
+from app.api.router_factory import public_router
 from app.models.requests import TransportationOptionsRequest
 from app.models.responses import TransportationOptionsResponse
 from app.services.gemini_service import GeminiService
 from app.services.grounding_service import GroundingService
 
-router = APIRouter(
-    prefix="/api/v1/transportation",
-    tags=["transportation"],
-    dependencies=[Depends(enforce_request_size), Depends(rate_limit)],
-)
+router = public_router("/api/v1/transportation", "transportation")
 
 
 @router.post("/options", response_model=TransportationOptionsResponse)

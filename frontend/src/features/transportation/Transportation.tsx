@@ -1,30 +1,23 @@
 import { FormEvent, useState } from 'react';
 import { ResultCard } from '../../components/ResultCard';
-import { postJson } from '../../services/apiClient';
+import { useApiMutation } from '../../hooks/useApiMutation';
 import { baseRequest } from '../../services/requestDefaults';
+import { TransportationOptionsResponse } from '../../types/api';
 
 type Props = { language: string; venueId: string };
 
 export function Transportation({ language, venueId }: Props) {
   const [originAddress, setOriginAddress] = useState('Downtown transit hub');
-  const [result, setResult] = useState<unknown>();
-  const [error, setError] = useState<string | null>(null);
+  const transportation = useApiMutation<TransportationOptionsResponse>();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    try {
-      setResult(
-        await postJson('/api/v1/transportation/options', {
-          ...baseRequest(language, venueId),
-          origin_address: originAddress,
-          departure_context: 'pre_match',
-          needs_accessible_transport: true
-        })
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
-    }
+    await transportation.run('/api/v1/transportation/options', {
+      ...baseRequest(language, venueId),
+      origin_address: originAddress,
+      departure_context: 'pre_match',
+      needs_accessible_transport: true
+    });
   }
 
   return (
@@ -39,7 +32,12 @@ export function Transportation({ language, venueId }: Props) {
         />
         <button type="submit">Find transportation</button>
       </form>
-      <ResultCard title="Transportation options" result={result} error={error} tone="fan" />
+      <ResultCard
+        title="Transportation options"
+        result={transportation.result}
+        error={transportation.error}
+        tone="fan"
+      />
     </section>
   );
 }

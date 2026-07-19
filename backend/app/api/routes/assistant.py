@@ -1,21 +1,17 @@
 from contextlib import suppress
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import Depends
 
 from app.api.deps import get_firestore_repo, get_gemini_service, get_grounding_service
-from app.core.security import enforce_request_size, rate_limit
+from app.api.router_factory import public_router
 from app.models.requests import AssistantChatRequest
 from app.models.responses import AssistantChatResponse
 from app.repositories.firestore_repo import FirestoreRepository
 from app.services.gemini_service import GeminiService
 from app.services.grounding_service import GroundingService
 
-router = APIRouter(
-    prefix="/api/v1/assistant",
-    tags=["assistant"],
-    dependencies=[Depends(enforce_request_size), Depends(rate_limit)],
-)
+router = public_router("/api/v1/assistant", "assistant")
 
 
 @router.post("/chat", response_model=AssistantChatResponse)

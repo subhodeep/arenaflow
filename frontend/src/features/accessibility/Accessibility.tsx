@@ -1,7 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { ResultCard } from '../../components/ResultCard';
-import { postJson } from '../../services/apiClient';
+import { useApiMutation } from '../../hooks/useApiMutation';
 import { baseRequest } from '../../services/requestDefaults';
+import { AccessibilityPlanResponse } from '../../types/api';
 
 type Props = { language: string; venueId: string };
 
@@ -14,25 +15,17 @@ function parseNeeds(value: string): string[] {
 
 export function Accessibility({ language, venueId }: Props) {
   const [needs, setNeeds] = useState('wheelchair, step-free, low-sensory');
-  const [result, setResult] = useState<unknown>();
-  const [error, setError] = useState<string | null>(null);
+  const accessibility = useApiMutation<AccessibilityPlanResponse>();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    try {
-      setResult(
-        await postJson('/api/v1/accessibility/plan', {
-          ...baseRequest(language, venueId),
-          origin: 'Gate A',
-          destination: 'Section 120',
-          needs: parseNeeds(needs),
-          companion_count: 1
-        })
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
-    }
+    await accessibility.run('/api/v1/accessibility/plan', {
+      ...baseRequest(language, venueId),
+      origin: 'Gate A',
+      destination: 'Section 120',
+      needs: parseNeeds(needs),
+      companion_count: 1
+    });
   }
 
   return (
@@ -43,7 +36,12 @@ export function Accessibility({ language, venueId }: Props) {
         <input id="needs" value={needs} onChange={(event) => setNeeds(event.target.value)} />
         <button type="submit">Create accessibility plan</button>
       </form>
-      <ResultCard title="Accessibility plan" result={result} error={error} tone="access" />
+      <ResultCard
+        title="Accessibility plan"
+        result={accessibility.result}
+        error={accessibility.error}
+        tone="access"
+      />
     </section>
   );
 }

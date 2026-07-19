@@ -1,29 +1,22 @@
 import { FormEvent, useState } from 'react';
 import { ResultCard } from '../../components/ResultCard';
-import { postJson } from '../../services/apiClient';
+import { useApiMutation } from '../../hooks/useApiMutation';
 import { baseRequest } from '../../services/requestDefaults';
+import { AssistantChatResponse } from '../../types/api';
 
 type Props = { language: string; venueId: string };
 
 export function Assistant({ language, venueId }: Props) {
   const [message, setMessage] = useState('Where is the nearest accessible entrance?');
-  const [result, setResult] = useState<unknown>();
-  const [error, setError] = useState<string | null>(null);
+  const assistant = useApiMutation<AssistantChatResponse>();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    try {
-      setResult(
-        await postJson('/api/v1/assistant/chat', {
-          ...baseRequest(language, venueId),
-          message,
-          user_type: 'fan'
-        })
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
-    }
+    await assistant.run('/api/v1/assistant/chat', {
+      ...baseRequest(language, venueId),
+      message,
+      user_type: 'fan'
+    });
   }
 
   return (
@@ -38,7 +31,12 @@ export function Assistant({ language, venueId }: Props) {
         />
         <button type="submit">Ask ArenaFlow</button>
       </form>
-      <ResultCard title="Assistant response" result={result} error={error} tone="fan" />
+      <ResultCard
+        title="Assistant response"
+        result={assistant.result}
+        error={assistant.error}
+        tone="fan"
+      />
     </section>
   );
 }

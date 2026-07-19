@@ -1,7 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { ResultCard } from '../../components/ResultCard';
-import { postJson } from '../../services/apiClient';
+import { useApiMutation } from '../../hooks/useApiMutation';
 import { baseRequest } from '../../services/requestDefaults';
+import { OpsDecisionSupportResponse } from '../../types/api';
 
 type Props = { language: string; venueId: string };
 
@@ -10,29 +11,21 @@ export function Operations({ language, venueId }: Props) {
   const [situation, setSituation] = useState(
     'Gate B queues are increasing and accessible route access may be constrained.'
   );
-  const [result, setResult] = useState<unknown>();
-  const [error, setError] = useState<string | null>(null);
+  const operations = useApiMutation<OpsDecisionSupportResponse>();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    try {
-      setResult(
-        await postJson(
-          '/api/v1/ops/decision-support',
-          {
-            ...baseRequest(language, venueId),
-            situation,
-            decision_window_minutes: 15,
-            include_sustainability: true,
-            include_transportation: true
-          },
-          token
-        )
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed');
-    }
+    await operations.run(
+      '/api/v1/ops/decision-support',
+      {
+        ...baseRequest(language, venueId),
+        situation,
+        decision_window_minutes: 15,
+        include_sustainability: true,
+        include_transportation: true
+      },
+      token
+    );
   }
 
   return (
@@ -56,7 +49,12 @@ export function Operations({ language, venueId }: Props) {
         />
         <button type="submit">Generate decision support</button>
       </form>
-      <ResultCard title="Operational intelligence" result={result} error={error} tone="ops" />
+      <ResultCard
+        title="Operational intelligence"
+        result={operations.result}
+        error={operations.error}
+        tone="ops"
+      />
     </section>
   );
 }

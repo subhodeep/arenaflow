@@ -1,19 +1,16 @@
-from fastapi import APIRouter, Depends
+from fastapi import Depends
 
 from app.api.deps import get_gemini_service, get_grounding_service, get_venue_graph_service
-from app.core.security import enforce_request_size, rate_limit
+from app.api.router_factory import public_router
 from app.models.domain import RouteStep
 from app.models.requests import AccessibilityPlanRequest, NavigationRouteRequest
 from app.models.responses import AccessibilityPlanResponse, NavigationRouteResponse
+from app.services.context import context_as_dict
 from app.services.gemini_service import GeminiService
 from app.services.grounding_service import GroundingService
 from app.services.venue_graph_service import VenueGraphService
 
-router = APIRouter(
-    prefix="/api/v1/navigation",
-    tags=["navigation"],
-    dependencies=[Depends(enforce_request_size), Depends(rate_limit)],
-)
+router = public_router("/api/v1/navigation", "navigation")
 
 
 @router.post("/route", response_model=NavigationRouteResponse)
@@ -32,7 +29,8 @@ async def route(
     )
     response = await gemini.generate_accessibility_plan(
         request=_to_accessibility_request(request),
-        context=context | {"computed_route_steps": [step.model_dump() for step in steps]},
+        context=context_as_dict(context)
+        | {"computed_route_steps": [step.model_dump() for step in steps]},
     )
     return _to_navigation_response(response, steps)
 
