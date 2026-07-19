@@ -7,7 +7,11 @@ from app.models.responses import TransportationOptionsResponse
 from app.services.gemini_service import GeminiService
 from app.services.grounding_service import GroundingService
 
-router = APIRouter(prefix="/api/v1/transportation", tags=["transportation"], dependencies=[Depends(enforce_request_size), Depends(rate_limit)])
+router = APIRouter(
+    prefix="/api/v1/transportation",
+    tags=["transportation"],
+    dependencies=[Depends(enforce_request_size), Depends(rate_limit)],
+)
 
 
 @router.post("/options", response_model=TransportationOptionsResponse)

@@ -2,13 +2,17 @@ import { getRuntimeConfig } from './runtimeConfig';
 
 export type ApiError = {
   error: {
-    code: string;
-    message: string;
-    request_id: string;
+    code?: string;
+    message?: string;
+    request_id?: string;
   };
 };
 
-export async function postJson<TRequest, TResponse>(path: string, body: TRequest, token?: string): Promise<TResponse> {
+export async function postJson<TRequest, TResponse>(
+  path: string,
+  body: TRequest,
+  token?: string
+): Promise<TResponse> {
   const config = getRuntimeConfig();
   const response = await fetch(`${config.ARENAFLOW_API_BASE_URL}${path}`, {
     method: 'POST',
@@ -18,9 +22,16 @@ export async function postJson<TRequest, TResponse>(path: string, body: TRequest
     },
     body: JSON.stringify(body)
   });
+
   if (!response.ok) {
-    const error = (await response.json().catch(() => ({ error: { message: 'Request failed' } }))) as ApiError;
-    throw new Error(error.error?.message || 'Request failed');
+    const error = await parseApiError(response);
+    throw new Error(error.error.message || 'Request failed');
   }
   return (await response.json()) as TResponse;
+}
+
+async function parseApiError(response: Response): Promise<ApiError> {
+  return (await response
+    .json()
+    .catch(() => ({ error: { message: 'Request failed' } }))) as ApiError;
 }

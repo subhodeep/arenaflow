@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -35,14 +35,22 @@ class FirestoreRepository:
         return doc.to_dict() if doc.exists else None
 
     async def get_crowd_zones(self, venue_id: str) -> list[dict[str, Any]]:
-        query = self._collection("crowd_zones").where(filter=firestore.FieldFilter("venue_id", "==", venue_id))
+        query = self._collection("crowd_zones").where(
+            filter=firestore.FieldFilter("venue_id", "==", venue_id)
+        )
         return [doc.to_dict() | {"id": doc.id} for doc in query.stream()]
 
     async def get_active_incidents(self, venue_id: str) -> list[dict[str, Any]]:
         query = (
             self._collection("incidents")
             .where(filter=firestore.FieldFilter("venue_id", "==", venue_id))
-            .where(filter=firestore.FieldFilter("status", "in", ["open", "investigating", "mitigating"]))
+            .where(
+                filter=firestore.FieldFilter(
+                    "status",
+                    "in",
+                    ["open", "investigating", "mitigating"],
+                )
+            )
         )
         return [doc.to_dict() | {"id": doc.id} for doc in query.stream()]
 
@@ -52,12 +60,12 @@ class FirestoreRepository:
 
     async def write_assistant_audit(self, record: dict[str, Any]) -> str:
         doc_id = record.get("id") or str(uuid4())
-        payload = record | {"created_at": datetime.now(timezone.utc)}
+        payload = record | {"created_at": datetime.now(UTC)}
         self._collection("assistant_sessions").document(doc_id).set(payload, merge=True)
         return doc_id
 
     async def write_ops_snapshot(self, snapshot: dict[str, Any]) -> str:
         doc_id = snapshot.get("id") or str(uuid4())
-        payload = snapshot | {"created_at": datetime.now(timezone.utc)}
+        payload = snapshot | {"created_at": datetime.now(UTC)}
         self._collection("ops_snapshots").document(doc_id).set(payload, merge=True)
         return doc_id

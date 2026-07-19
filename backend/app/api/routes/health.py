@@ -8,4 +8,8 @@ router = APIRouter(tags=["health"])
 
 @router.get("/healthz", response_model=HealthResponse)
 async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
-    return HealthResponse(app_name=settings.app_name, app_version=settings.app_version, environment=settings.environment)
+    return HealthResponse(
+        app_name=settings.app_name,
+        app_version=settings.app_version,
+        environment=settings.environment,
+    )

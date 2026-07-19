@@ -5,6 +5,13 @@ import { baseRequest } from '../../services/requestDefaults';
 
 type Props = { language: string; venueId: string };
 
+function parseNeeds(value: string): string[] {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export function Accessibility({ language, venueId }: Props) {
   const [needs, setNeeds] = useState('wheelchair, step-free, low-sensory');
   const [result, setResult] = useState<unknown>();
@@ -14,7 +21,15 @@ export function Accessibility({ language, venueId }: Props) {
     event.preventDefault();
     setError(null);
     try {
-      setResult(await postJson('/api/v1/accessibility/plan', { ...baseRequest(language, venueId), origin: 'Gate A', destination: 'Section 120', needs: needs.split(',').map((item) => item.trim()).filter(Boolean), companion_count: 1 }));
+      setResult(
+        await postJson('/api/v1/accessibility/plan', {
+          ...baseRequest(language, venueId),
+          origin: 'Gate A',
+          destination: 'Section 120',
+          needs: parseNeeds(needs),
+          companion_count: 1
+        })
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Request failed');
     }

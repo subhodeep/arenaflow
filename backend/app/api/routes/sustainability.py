@@ -9,7 +9,11 @@ from app.services.gemini_service import GeminiService
 from app.services.grounding_service import GroundingService
 from app.services.sustainability_service import SustainabilityService
 
-router = APIRouter(prefix="/api/v1/sustainability", tags=["sustainability"], dependencies=[Depends(enforce_request_size), Depends(rate_limit)])
+router = APIRouter(
+    prefix="/api/v1/sustainability",
+    tags=["sustainability"],
+    dependencies=[Depends(enforce_request_size), Depends(rate_limit)],
+)
 
 
 @router.post("/advice", response_model=SustainabilityAdviceResponse)

@@ -7,7 +7,11 @@ from app.models.responses import AccessibilityPlanResponse
 from app.services.gemini_service import GeminiService
 from app.services.grounding_service import GroundingService
 
-router = APIRouter(prefix="/api/v1/accessibility", tags=["accessibility"], dependencies=[Depends(enforce_request_size), Depends(rate_limit)])
+router = APIRouter(
+    prefix="/api/v1/accessibility",
+    tags=["accessibility"],
+    dependencies=[Depends(enforce_request_size), Depends(rate_limit)],
+)
 
 
 @router.post("/plan", response_model=AccessibilityPlanResponse)

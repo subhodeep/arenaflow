@@ -8,7 +8,11 @@ from app.services.crowd_service import CrowdService
 from app.services.gemini_service import GeminiService
 from app.services.grounding_service import GroundingService
 
-router = APIRouter(prefix="/api/v1/crowd", tags=["crowd"], dependencies=[Depends(enforce_request_size), Depends(rate_limit), Depends(require_staff)])
+router = APIRouter(
+    prefix="/api/v1/crowd",
+    tags=["crowd"],
+    dependencies=[Depends(enforce_request_size), Depends(rate_limit), Depends(require_staff)],
+)
 
 
 @router.post("/recommendation", response_model=CrowdRecommendationResponse)

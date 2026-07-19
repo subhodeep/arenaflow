@@ -13,7 +13,9 @@ export const strings = {
   },
   es: {
     title: 'ArenaFlow',
-    subtitle: 'Operaciones de estadio y experiencia de aficionados con GenAI para la Copa Mundial FIFA 2026',
+    subtitle:
+      'Operaciones de estadio y experiencia de aficionados con GenAI para la Copa Mundial '
+      + 'FIFA 2026',
     assistant: 'Asistente',
     navigation: 'Navegación',
     accessibility: 'Accesibilidad',

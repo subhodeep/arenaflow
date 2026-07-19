@@ -35,7 +35,10 @@ async def fetch_jwks(settings: Settings) -> dict[str, Any]:
     if _JWKS_CACHE["keys"] and _JWKS_CACHE["expires_at"] > now:
         return _JWKS_CACHE["keys"]
     if not settings.staff_auth_jwks_url:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Staff JWKS URL is not configured")
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "Staff JWKS URL is not configured",
+        )
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(settings.staff_auth_jwks_url)
         response.raise_for_status()
@@ -48,7 +51,14 @@ async def fetch_jwks(settings: Settings) -> dict[str, Any]:
 async def validate_staff_token(token: str, settings: Settings) -> dict[str, Any]:
     jwks = await fetch_jwks(settings)
     header = jwt.get_unverified_header(token)
-    key = next((candidate for candidate in jwks.get("keys", []) if candidate.get("kid") == header.get("kid")), None)
+    key = next(
+        (
+            candidate
+            for candidate in jwks.get("keys", [])
+            if candidate.get("kid") == header.get("kid")
+        ),
+        None,
+    )
     if not key:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Unknown staff token key")
     public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
@@ -88,10 +98,15 @@ async def require_scheduler_or_staff(
         return {"sub": "local-scheduler", "roles": ["arenaflow_admin"]}
     if not credentials or credentials.scheme.lower() != "bearer":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Bearer token is required")
+
     token = credentials.credentials
     try:
         audience = str(request.base_url).rstrip("/")
-        claims = id_token.verify_oauth2_token(token, google_auth_requests.Request(), audience=audience)
+        claims = id_token.verify_oauth2_token(
+            token,
+            google_auth_requests.Request(),
+            audience=audience,
+        )
         expected_email = settings.scheduler_service_account_email
         if expected_email and claims.get("email") == expected_email:
             return claims
@@ -105,11 +120,23 @@ async def enforce_request_size(
     settings: Annotated[Settings, Depends(get_settings)],
     content_length: Annotated[str | None, Header(alias="content-length")] = None,
 ) -> None:
-    if content_length and int(content_length) > settings.max_request_bytes:
+    if content_length is None:
+        return
+    try:
+        request_bytes = int(content_length)
+    except ValueError as exc:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Content-Length must be an integer",
+        ) from exc
+    if request_bytes > settings.max_request_bytes:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Request body is too large")
 
 
-async def rate_limit(request: Request, settings: Annotated[Settings, Depends(get_settings)]) -> None:
+async def rate_limit(
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> None:
     window_seconds = 60
     now = time.time()
     client = request.client.host if request.client else "unknown"

@@ -14,7 +14,14 @@ export function Sustainability({ language, venueId }: Props) {
     event.preventDefault();
     setError(null);
     try {
-      setResult(await postJson('/api/v1/sustainability/advice', { ...baseRequest(language, venueId), intent, location: 'main concourse', preferences: ['low-carbon', 'refill'] }));
+      setResult(
+        await postJson('/api/v1/sustainability/advice', {
+          ...baseRequest(language, venueId),
+          intent,
+          location: 'main concourse',
+          preferences: ['low-carbon', 'refill']
+        })
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Request failed');
     }

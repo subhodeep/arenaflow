@@ -29,7 +29,11 @@ class BigQueryRepository:
         if errors:
             raise RuntimeError(f"BigQuery insert failed: {errors}")
 
-    async def query_recent_crowd_trends(self, venue_id: str, event_id: str | None) -> list[dict[str, Any]]:
+    async def query_recent_crowd_trends(
+        self,
+        venue_id: str,
+        event_id: str | None,
+    ) -> list[dict[str, Any]]:
         query = f"""
         SELECT zone_id, AVG(density_score) AS avg_density, MAX(observed_at) AS latest_observed_at
         FROM `{self.table('crowd_observations')}`

@@ -5,7 +5,17 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import accessibility, assistant, config, crowd, health, navigation, operations, sustainability, transportation
+from app.api.routes import (
+    accessibility,
+    assistant,
+    config,
+    crowd,
+    health,
+    navigation,
+    operations,
+    sustainability,
+    transportation,
+)
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 
@@ -41,25 +51,34 @@ async def request_context_and_headers(request: Request, call_next):
     return response
 
 
-def error_response(code: str, message: str, request: Request, status_code: int) -> JSONResponse:
+def error_response(
+    code: str,
+    message: str,
+    request: Request,
+    status_code: int,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", "unknown")
     return JSONResponse(
         status_code=status_code,
-        content={"error": {"code": code, "message": message, "request_id": getattr(request.state, "request_id", "unknown")}},
+        content={"error": {"code": code, "message": message, "request_id": request_id}},
     )
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
     return error_response("VALIDATION_ERROR", "Request validation failed.", request, 422)
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     return error_response("HTTP_ERROR", str(exc.detail), request, exc.status_code)
 
 
 @app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     return error_response("INTERNAL_ERROR", "An unexpected error occurred.", request, 500)
 
 

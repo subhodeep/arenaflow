@@ -14,7 +14,13 @@ export function Assistant({ language, venueId }: Props) {
     event.preventDefault();
     setError(null);
     try {
-      setResult(await postJson('/api/v1/assistant/chat', { ...baseRequest(language, venueId), message, user_type: 'fan' }));
+      setResult(
+        await postJson('/api/v1/assistant/chat', {
+          ...baseRequest(language, venueId),
+          message,
+          user_type: 'fan'
+        })
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Request failed');
     }
@@ -25,7 +31,11 @@ export function Assistant({ language, venueId }: Props) {
       <h2>Multilingual assistant</h2>
       <form onSubmit={submit}>
         <label htmlFor="assistant-message">Question</label>
-        <textarea id="assistant-message" value={message} onChange={(event) => setMessage(event.target.value)} />
+        <textarea
+          id="assistant-message"
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+        />
         <button type="submit">Ask ArenaFlow</button>
       </form>
       <ResultCard title="Assistant response" result={result} error={error} tone="fan" />

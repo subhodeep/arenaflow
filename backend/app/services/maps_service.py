@@ -3,7 +3,11 @@ from typing import Any
 import httpx
 
 from app.core.config import Settings
-from app.models.requests import BaseArenaRequest, NavigationRouteRequest, TransportationOptionsRequest
+from app.models.requests import (
+    BaseArenaRequest,
+    NavigationRouteRequest,
+    TransportationOptionsRequest,
+)
 
 
 class MapsService:
@@ -20,9 +24,23 @@ class MapsService:
         return {"available": False, "reason": "No maps adapter for request type"}
 
     async def route_context(self, origin: str, destination: str) -> dict[str, Any]:
-        return {"available": True, "origin": origin, "destination": destination, "note": "Server-side Maps route adapter placeholder. Configure Routes API request as needed."}
+        return {
+            "available": True,
+            "origin": origin,
+            "destination": destination,
+            "note": (
+                "Server-side Maps route adapter placeholder. "
+                "Configure Routes API request as needed."
+            ),
+        }
 
     async def place_context(self, address: str) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=5.0) as client:
             _ = client
-        return {"available": True, "address": address, "note": "Server-side Places adapter placeholder. Configure Places API request as needed."}
+        return {
+            "available": True,
+            "address": address,
+            "note": (
+                "Server-side Places adapter placeholder. " "Configure Places API request as needed."
+            ),
+        }

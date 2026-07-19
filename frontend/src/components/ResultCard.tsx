@@ -21,7 +21,12 @@ function asStringList(value: unknown): string[] {
     .map((item) => {
       if (typeof item === 'string') return item;
       if (isRecord(item)) {
-        return asString(item.title) || asString(item.summary) || asString(item.instruction) || asString(item.recommendation);
+        return (
+          asString(item.title) ||
+          asString(item.summary) ||
+          asString(item.instruction) ||
+          asString(item.recommendation)
+        );
       }
       return undefined;
     })
@@ -38,10 +43,11 @@ function getPrimaryText(data: Record<string, unknown>): string {
 }
 
 function getMeta(data: Record<string, unknown>) {
+  const estimatedMinutes = asString(data.estimated_total_minutes);
   return [
     ['Confidence', asString(data.confidence)],
     ['Language', asString(data.language)],
-    ['Estimated time', asString(data.estimated_total_minutes) ? `${asString(data.estimated_total_minutes)} min` : undefined],
+    ['Estimated time', estimatedMinutes ? `${estimatedMinutes} min` : undefined],
     ['Priority', asString(data.priority)]
   ].filter(([, value]) => Boolean(value));
 }
@@ -54,10 +60,17 @@ function renderObjectList(value: unknown, title: string) {
       <div className="step-list">
         {value.map((item, index) => {
           if (!isRecord(item)) return <p key={index}>{String(item)}</p>;
-          const heading = asString(item.title) || asString(item.mode) || asString(item.instruction) || `Item ${index + 1}`;
+          const heading =
+            asString(item.title) ||
+            asString(item.mode) ||
+            asString(item.instruction) ||
+            `Item ${index + 1}`;
           const body = asString(item.summary) || asString(item.recommendation);
           const steps = asStringList(item.steps);
-          const notes = [...asStringList(item.accessibility_notes), ...asStringList(item.crowd_notes)];
+          const notes = [
+            ...asStringList(item.accessibility_notes),
+            ...asStringList(item.crowd_notes)
+          ];
           return (
             <article className="action-item" key={index}>
               <strong>{heading}</strong>

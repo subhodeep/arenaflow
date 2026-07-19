@@ -14,6 +14,7 @@ export default function App() {
   const [language, setLanguage] = useState(config.ARENAFLOW_DEFAULT_LOCALE);
   const [venueId, setVenueId] = useState(config.ARENAFLOW_DEFAULT_VENUE_ID);
   const t = getStrings(language);
+  const sharedProps = { language, venueId };
 
   return (
     <div className="app-shell">
@@ -29,13 +30,20 @@ export default function App() {
             Language
             <select value={language} onChange={(event) => setLanguage(event.target.value)}>
               {config.ARENAFLOW_SUPPORTED_LOCALES.map((locale) => (
-                <option key={locale} value={locale}>{locale.toUpperCase()}</option>
+                <option key={locale} value={locale}>
+                  {locale.toUpperCase()}
+                </option>
               ))}
             </select>
           </label>
           <label className="language-picker">
             Venue ID
-            <input value={venueId} onChange={(event) => setVenueId(event.target.value)} placeholder="Set ARENAFLOW_DEFAULT_VENUE_ID" required />
+            <input
+              value={venueId}
+              onChange={(event) => setVenueId(event.target.value)}
+              placeholder="Set ARENAFLOW_DEFAULT_VENUE_ID"
+              required
+            />
           </label>
         </div>
       </header>
@@ -51,12 +59,12 @@ export default function App() {
 
       <main>
         <Routes>
-          <Route path="/" element={<Assistant language={language} venueId={venueId} />} />
-          <Route path="/navigation" element={<Navigation language={language} venueId={venueId} />} />
-          <Route path="/accessibility" element={<Accessibility language={language} venueId={venueId} />} />
-          <Route path="/transportation" element={<Transportation language={language} venueId={venueId} />} />
-          <Route path="/sustainability" element={<Sustainability language={language} venueId={venueId} />} />
-          <Route path="/operations" element={<Operations language={language} venueId={venueId} />} />
+          <Route path="/" element={<Assistant {...sharedProps} />} />
+          <Route path="/navigation" element={<Navigation {...sharedProps} />} />
+          <Route path="/accessibility" element={<Accessibility {...sharedProps} />} />
+          <Route path="/transportation" element={<Transportation {...sharedProps} />} />
+          <Route path="/sustainability" element={<Sustainability {...sharedProps} />} />
+          <Route path="/operations" element={<Operations {...sharedProps} />} />
         </Routes>
       </main>
     </div>
